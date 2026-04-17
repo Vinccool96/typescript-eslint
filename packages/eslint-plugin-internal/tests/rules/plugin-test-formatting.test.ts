@@ -34,198 +34,567 @@ ruleTester.run('plugin-test-formatting', rule, {
   invalid: [
     // Literal
     {
-      code: wrap`'const a=1;'`,
+      code: `
+ruleTester.run({
+  valid: [
+    {
+      code: 'const a=1;',
+    },
+  ],
+});
+      `,
       errors: [
         {
+          column: 13,
+          endColumn: 25,
+          endLine: 5,
+          line: 5,
           messageId: 'invalidFormatting',
         },
       ],
-      output: wrap`'const a = 1;'`,
+      output: `
+ruleTester.run({
+  valid: [
+    {
+      code: 'const a = 1;',
+    },
+  ],
+});
+      `,
     },
     {
-      code: wrap`'const a="1";'`,
+      code: `
+ruleTester.run({
+  valid: [
+    {
+      code: 'const a="1";',
+    },
+  ],
+});
+      `,
       errors: [
         {
+          column: 13,
+          endColumn: 27,
+          endLine: 5,
+          line: 5,
           messageId: 'invalidFormatting',
         },
       ],
-      output: wrap`"const a = '1';"`,
+      output: `
+ruleTester.run({
+  valid: [
+    {
+      code: "const a = '1';",
+    },
+  ],
+});
+      `,
     },
     {
-      code: wrap`"const a='1';"`,
+      code: `
+ruleTester.run({
+  valid: [
+    {
+      code: "const a='1';",
+    },
+  ],
+});
+      `,
       errors: [
         {
+          column: 13,
+          endColumn: 27,
+          endLine: 5,
+          line: 5,
           messageId: 'invalidFormatting',
         },
       ],
-      output: wrap`"const a = '1';"`,
+      output: `
+ruleTester.run({
+  valid: [
+    {
+      code: "const a = '1';",
+    },
+  ],
+});
+      `,
     },
     {
-      code: wrap`'for (const x of y) {}'`,
+      code: `
+ruleTester.run({
+  valid: [
+    {
+      code: 'for (const x of y) {}',
+    },
+  ],
+});
+      `,
       errors: [
         {
+          column: 13,
+          endColumn: 36,
+          endLine: 5,
+          line: 5,
           messageId: 'invalidFormatting',
         },
       ],
       output: [
-        wrap`\`for (const x of y) {
-}\``,
-        wrap`\`
+        `
+ruleTester.run({
+  valid: [
+    {
+      code: \`for (const x of y) {
+}\`,
+    },
+  ],
+});
+      `,
+        `
+ruleTester.run({
+  valid: [
+    {
+      code: \`
 for (const x of y) {
 }
-\``,
-        wrap`\`
+\`,
+    },
+  ],
+});
+      `,
+        `
+ruleTester.run({
+  valid: [
+    {
+      code: \`
 for (const x of y) {
 }
-${PARENT_INDENT}\``,
+      \`,
+    },
+  ],
+});
+      `,
       ],
     },
     {
-      code: wrap`'for (const x of \`asdf\`) {}'`,
-      // make sure it escapes the backticks
+      code: `
+ruleTester.run({
+  valid: [
+    {
+      code: 'for (const x of \`asdf\`) {}',
+    },
+  ],
+});
+      `,
       errors: [
         {
+          column: 13,
+          endColumn: 41,
+          endLine: 5,
+          line: 5,
           messageId: 'invalidFormatting',
         },
       ],
       output: [
-        wrap`\`for (const x of \\\`asdf\\\`) {
-}\``,
-        wrap`\`
+        `
+ruleTester.run({
+  valid: [
+    {
+      code: \`for (const x of \\\`asdf\\\`) {
+}\`,
+    },
+  ],
+});
+      `,
+        `
+ruleTester.run({
+  valid: [
+    {
+      code: \`
 for (const x of \\\`asdf\\\`) {
 }
-\``,
-        wrap`\`
+\`,
+    },
+  ],
+});
+      `,
+        `
+ruleTester.run({
+  valid: [
+    {
+      code: \`
 for (const x of \\\`asdf\\\`) {
 }
-${PARENT_INDENT}\``,
+      \`,
+    },
+  ],
+});
+      `,
       ],
     },
     // TemplateLiteral
     // singleLineQuotes
     {
-      code: wrap`\`const a = 1;\``,
+      code: `
+ruleTester.run({
+  valid: [
+    {
+      code: \`const a = 1;\`,
+    },
+  ],
+});
+      `,
       errors: [
         {
+          column: 13,
+          endColumn: 27,
+          endLine: 5,
+          line: 5,
           messageId: 'singleLineQuotes',
         },
       ],
-      output: wrap`'const a = 1;'`,
+      output: `
+ruleTester.run({
+  valid: [
+    {
+      code: 'const a = 1;',
+    },
+  ],
+});
+      `,
     },
     {
-      code: wrap`\`const a = '1'\``,
+      code: `
+ruleTester.run({
+  valid: [
+    {
+      code: \`const a = '1'\`,
+    },
+  ],
+});
+      `,
       errors: [
         {
+          column: 13,
+          endColumn: 28,
+          endLine: 5,
+          line: 5,
           messageId: 'singleLineQuotes',
         },
       ],
-      output: [wrap`"const a = '1'"`, wrap`"const a = '1';"`],
+      output: [
+        `
+ruleTester.run({
+  valid: [
+    {
+      code: "const a = '1'",
+    },
+  ],
+});
+      `,
+        `
+ruleTester.run({
+  valid: [
+    {
+      code: "const a = '1';",
+    },
+  ],
+});
+      `,
+      ],
     },
     {
-      code: wrap`\`const a = "1";\``,
+      code: `
+ruleTester.run({
+  valid: [
+    {
+      code: \`const a = "1";\`,
+    },
+  ],
+});
+      `,
       errors: [
         {
+          column: 13,
+          endColumn: 29,
+          endLine: 5,
+          line: 5,
           messageId: 'singleLineQuotes',
         },
       ],
-      output: [wrap`'const a = "1";'`, wrap`"const a = '1';"`],
+      output: [
+        `
+ruleTester.run({
+  valid: [
+    {
+      code: 'const a = "1";',
+    },
+  ],
+});
+      `,
+        `
+ruleTester.run({
+  valid: [
+    {
+      code: "const a = '1';",
+    },
+  ],
+});
+      `,
+      ],
     },
     // templateLiteralEmptyEnds
     {
-      code: wrap`\`const a = "1";
-${PARENT_INDENT}\``,
+      code: `
+ruleTester.run({
+  valid: [
+    {
+      code: \`const a = "1";
+      \`,
+    },
+  ],
+});
+      `,
       errors: [
         {
+          column: 13,
+          endColumn: 8,
+          endLine: 6,
+          line: 5,
           messageId: 'templateLiteralEmptyEnds',
         },
       ],
       output: [
-        wrap`\`
+        `
+ruleTester.run({
+  valid: [
+    {
+      code: \`
 const a = "1";
-${PARENT_INDENT}\``,
-        wrap`\`
+      \`,
+    },
+  ],
+});
+      `,
+        `
+ruleTester.run({
+  valid: [
+    {
+      code: \`
 const a = '1';
-${PARENT_INDENT}\``,
+      \`,
+    },
+  ],
+});
+      `,
       ],
     },
     {
-      code: wrap`\`
-${CODE_INDENT}const a = "1";\``,
+      code: `
+ruleTester.run({
+  valid: [
+    {
+      code: \`
+        const a = "1";\`,
+    },
+  ],
+});
+      `,
       errors: [
         {
+          column: 13,
+          endColumn: 24,
+          endLine: 6,
+          line: 5,
           messageId: 'templateLiteralEmptyEnds',
         },
       ],
       output: [
-        wrap`\`
-${CODE_INDENT}const a = "1";
-\``,
-        wrap`\`
-${CODE_INDENT}const a = "1";
-${PARENT_INDENT}\``,
-        wrap`\`
-${CODE_INDENT}const a = '1';
-${PARENT_INDENT}\``,
+        `
+ruleTester.run({
+  valid: [
+    {
+      code: \`
+        const a = "1";
+\`,
+    },
+  ],
+});
+      `,
+        `
+ruleTester.run({
+  valid: [
+    {
+      code: \`
+        const a = "1";
+      \`,
+    },
+  ],
+});
+      `,
+        `
+ruleTester.run({
+  valid: [
+    {
+      code: \`
+        const a = '1';
+      \`,
+    },
+  ],
+});
+      `,
       ],
     },
     {
-      code: wrap`\`const a = "1";
-${CODE_INDENT}const b = "2";\``,
+      code: `
+ruleTester.run({
+  valid: [
+    {
+      code: \`const a = "1";
+        const b = "2";\`,
+    },
+  ],
+});
+      `,
       errors: [
         {
+          column: 13,
+          endColumn: 24,
+          endLine: 6,
+          line: 5,
           messageId: 'templateLiteralEmptyEnds',
         },
       ],
       output: [
-        wrap`\`
+        `
+ruleTester.run({
+  valid: [
+    {
+      code: \`
 const a = "1";
-${CODE_INDENT}const b = "2";
-\``,
-        wrap`\`
+        const b = "2";
+\`,
+    },
+  ],
+});
+      `,
+        `
+ruleTester.run({
+  valid: [
+    {
+      code: \`
 const a = "1";
-${CODE_INDENT}const b = "2";
-${PARENT_INDENT}\``,
-        wrap`\`
+        const b = "2";
+      \`,
+    },
+  ],
+});
+      `,
+        `
+ruleTester.run({
+  valid: [
+    {
+      code: \`
 const a = '1';
 const b = '2';
-${PARENT_INDENT}\``,
+      \`,
+    },
+  ],
+});
+      `,
       ],
     },
     // templateLiteralLastLineIndent
     {
-      code: wrap`\`
-${CODE_INDENT}const a = "1";
-\``,
+      code: `
+ruleTester.run({
+  valid: [
+    {
+      code: \`
+        const a = "1";
+\`,
+    },
+  ],
+});
+      `,
       errors: [
         {
+          column: 13,
+          endColumn: 2,
+          endLine: 7,
+          line: 5,
           messageId: 'templateLiteralLastLineIndent',
         },
       ],
       output: [
-        wrap`\`
-${CODE_INDENT}const a = "1";
-${PARENT_INDENT}\``,
-        wrap`\`
-${CODE_INDENT}const a = '1';
-${PARENT_INDENT}\``,
+        `
+ruleTester.run({
+  valid: [
+    {
+      code: \`
+        const a = "1";
+      \`,
+    },
+  ],
+});
+      `,
+        `
+ruleTester.run({
+  valid: [
+    {
+      code: \`
+        const a = '1';
+      \`,
+    },
+  ],
+});
+      `,
       ],
     },
     {
-      code: wrap`\`
-${CODE_INDENT}const a = "1";
-                      \``,
+      code: `
+ruleTester.run({
+  valid: [
+    {
+      code: \`
+        const a = "1";
+                      \`,
+    },
+  ],
+});
+      `,
       errors: [
         {
+          column: 13,
+          endColumn: 24,
+          endLine: 7,
+          line: 5,
           messageId: 'templateLiteralLastLineIndent',
         },
       ],
       output: [
-        wrap`\`
-${CODE_INDENT}const a = "1";
-${PARENT_INDENT}\``,
-        wrap`\`
-${CODE_INDENT}const a = '1';
-${PARENT_INDENT}\``,
+        `
+ruleTester.run({
+  valid: [
+    {
+      code: \`
+        const a = "1";
+      \`,
+    },
+  ],
+});
+      `,
+        `
+ruleTester.run({
+  valid: [
+    {
+      code: \`
+        const a = '1';
+      \`,
+    },
+  ],
+});
+      `,
       ],
     },
     // templateStringRequiresIndent
@@ -235,9 +604,13 @@ ${PARENT_INDENT}\``,
 ${PARENT_INDENT}\``,
       errors: [
         {
+          column: 13,
           data: {
             indent: CODE_INDENT.length,
           },
+          endColumn: 8,
+          endLine: 7,
+          line: 5,
           messageId: 'templateStringRequiresIndent',
         },
       ],
@@ -255,9 +628,13 @@ ruleTester.run({
       `,
       errors: [
         {
+          column: 5,
           data: {
             indent: 6,
           },
+          endColumn: 6,
+          endLine: 6,
+          line: 4,
           messageId: 'templateStringRequiresIndent',
         },
       ],
@@ -271,9 +648,13 @@ ${CODE_INDENT}const a = "1";
 ${PARENT_INDENT}\``,
       errors: [
         {
+          column: 13,
           data: {
             indent: CODE_INDENT.length,
           },
+          endColumn: 8,
+          endLine: 8,
+          line: 5,
           messageId: 'templateStringMinimumIndent',
         },
       ],
@@ -287,6 +668,10 @@ ${CODE_INDENT}          const b    =   "2";
 ${PARENT_INDENT}\``,
       errors: [
         {
+          column: 13,
+          endColumn: 8,
+          endLine: 8,
+          line: 5,
           messageId: 'invalidFormatting',
         },
       ],
@@ -301,6 +686,10 @@ ${CODE_INDENT}const a=\\\`\\\${a}\\\`;
 ${PARENT_INDENT}\``,
       errors: [
         {
+          column: 13,
+          endColumn: 8,
+          endLine: 7,
+          line: 5,
           messageId: 'invalidFormatting',
         },
       ],
@@ -313,6 +702,10 @@ ${PARENT_INDENT}\``,
       code: wrap`noFormat\`const a = 1;\``,
       errors: [
         {
+          column: 13,
+          endColumn: 35,
+          endLine: 5,
+          line: 5,
           messageId: 'noUnnecessaryNoFormat',
         },
       ],
@@ -326,6 +719,10 @@ async function bar() {}
 \``,
       errors: [
         {
+          column: 1,
+          endColumn: 2,
+          endLine: 9,
+          line: 6,
           messageId: 'noUnnecessaryNoFormat',
         },
       ],
@@ -343,6 +740,10 @@ ${CODE_INDENT}async function foo() {}
 ${PARENT_INDENT}\``,
       errors: [
         {
+          column: 7,
+          endColumn: 8,
+          endLine: 9,
+          line: 6,
           messageId: 'noUnnecessaryNoFormat',
         },
       ],
@@ -377,6 +778,10 @@ ruleTester.run({
       `,
       errors: [
         {
+          column: 13,
+          endColumn: 25,
+          endLine: 6,
+          line: 6,
           messageId: 'invalidFormattingErrorTest',
         },
       ],
@@ -404,6 +809,7 @@ ruleTester.run({
     },
 
     // sanity check that it runs on all tests
+    // TODO
     {
       code: `
 ruleTester.run({
@@ -562,6 +968,7 @@ foo;
     },
 
     // handles prettier errors
+    // TODO
     {
       code: wrap`'const x = ";'`,
       errors: [
@@ -576,6 +983,7 @@ foo;
     },
 
     // annotated variables are checked
+    // TODO
     {
       code: `
 const test: RunTests = {
