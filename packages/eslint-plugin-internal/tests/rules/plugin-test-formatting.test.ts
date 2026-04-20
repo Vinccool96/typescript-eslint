@@ -1,4 +1,4 @@
-import { RuleTester } from '@typescript-eslint/rule-tester';
+import { noFormat, RuleTester } from '@typescript-eslint/rule-tester';
 
 import rule from '../../src/rules/plugin-test-formatting.js';
 import { getFixturesRootDir } from '../RuleTester.js';
@@ -13,23 +13,6 @@ const ruleTester = new RuleTester({
   },
 });
 
-const CODE_INDENT = '        ';
-const PARENT_INDENT = '      ';
-function wrap(strings: TemplateStringsArray, ...keys: string[]): string {
-  const lastIndex = strings.length - 1;
-  const code =
-    strings.slice(0, lastIndex).reduce((p, s, i) => p + s + keys[i], '') +
-    strings[lastIndex];
-  return `
-ruleTester.run({
-  valid: [
-    {
-      code: ${code},
-    },
-  ],
-});
-  `;
-}
 ruleTester.run('plugin-test-formatting', rule, {
   invalid: [
     // Literal
@@ -599,14 +582,22 @@ ruleTester.run({
     },
     // templateStringRequiresIndent
     {
-      code: wrap`\`
+      code: `
+ruleTester.run({
+  valid: [
+    {
+      code: \`
   const a = "1";
-${PARENT_INDENT}\``,
+      \`,
+    },
+  ],
+});
+      `,
       errors: [
         {
           column: 13,
           data: {
-            indent: CODE_INDENT.length,
+            indent: 8,
           },
           endColumn: 8,
           endLine: 7,
@@ -642,15 +633,23 @@ ruleTester.run({
     },
     // templateStringMinimumIndent
     {
-      code: wrap`\`
-${CODE_INDENT}const a = "1";
+      code: `
+ruleTester.run({
+  valid: [
+    {
+      code: \`
+        const a = "1";
   const b = "2";
-${PARENT_INDENT}\``,
+      \`,
+    },
+  ],
+});
+      `,
       errors: [
         {
           column: 13,
           data: {
-            indent: CODE_INDENT.length,
+            indent: 8,
           },
           endColumn: 8,
           endLine: 8,
@@ -662,10 +661,18 @@ ${PARENT_INDENT}\``,
     },
     // invalidFormatting
     {
-      code: wrap`\`
-${CODE_INDENT}const a="1";
-${CODE_INDENT}          const b    =   "2";
-${PARENT_INDENT}\``,
+      code: `
+ruleTester.run({
+  valid: [
+    {
+      code: \`
+        const a="1";
+                  const b    =   "2";
+      \`,
+    },
+  ],
+});
+      `,
       errors: [
         {
           column: 13,
@@ -675,15 +682,31 @@ ${PARENT_INDENT}\``,
           messageId: 'invalidFormatting',
         },
       ],
-      output: wrap`\`
-${CODE_INDENT}const a = '1';
-${CODE_INDENT}const b = '2';
-${PARENT_INDENT}\``,
+      output: `
+ruleTester.run({
+  valid: [
+    {
+      code: \`
+        const a = '1';
+        const b = '2';
+      \`,
+    },
+  ],
+});
+      `,
     },
     {
-      code: wrap`\`
-${CODE_INDENT}const a=\\\`\\\${a}\\\`;
-${PARENT_INDENT}\``,
+      code: `
+ruleTester.run({
+  valid: [
+    {
+      code: \`
+        const a=\\\`\\\${a}\\\`;
+      \`,
+    },
+  ],
+});
+      `,
       errors: [
         {
           column: 13,
@@ -693,13 +716,29 @@ ${PARENT_INDENT}\``,
           messageId: 'invalidFormatting',
         },
       ],
-      output: wrap`\`
-${CODE_INDENT}const a = \\\`\\\${a}\\\`;
-${PARENT_INDENT}\``,
+      output: `
+ruleTester.run({
+  valid: [
+    {
+      code: \`
+        const a = \\\`\\\${a}\\\`;
+      \`,
+    },
+  ],
+});
+      `,
     },
     // noUnnecessaryNoFormat
     {
-      code: wrap`noFormat\`const a = 1;\``,
+      code: `
+ruleTester.run({
+  valid: [
+    {
+      code: noFormat\`const a = 1;\`,
+    },
+  ],
+});
+      `,
       errors: [
         {
           column: 13,
@@ -709,14 +748,30 @@ ${PARENT_INDENT}\``,
           messageId: 'noUnnecessaryNoFormat',
         },
       ],
-      output: wrap`'const a = 1;'`,
+      output: `
+ruleTester.run({
+  valid: [
+    {
+      code: 'const a = 1;',
+    },
+  ],
+});
+      `,
     },
     {
-      code: wrap`
+      code: noFormat`
+ruleTester.run({
+  valid: [
+    {
+      code:
 noFormat\`
 async function foo() {}
 async function bar() {}
-\``,
+\`,
+    },
+  ],
+});
+      `,
       errors: [
         {
           column: 1,
@@ -726,18 +781,34 @@ async function bar() {}
           messageId: 'noUnnecessaryNoFormat',
         },
       ],
-      output: wrap`
+      output: `
+ruleTester.run({
+  valid: [
+    {
+      code:
 \`
 async function foo() {}
 async function bar() {}
-\``,
+\`,
+    },
+  ],
+});
+      `,
     },
     {
-      code: wrap`
-${PARENT_INDENT}noFormat\`
-${CODE_INDENT}async function bar() {}
-${CODE_INDENT}async function foo() {}
-${PARENT_INDENT}\``,
+      code: noFormat`
+ruleTester.run({
+  valid: [
+    {
+      code:
+      noFormat\`
+        async function bar() {}
+        async function foo() {}
+      \`,
+    },
+  ],
+});
+      `,
       errors: [
         {
           column: 7,
@@ -747,11 +818,19 @@ ${PARENT_INDENT}\``,
           messageId: 'noUnnecessaryNoFormat',
         },
       ],
-      output: wrap`
-${PARENT_INDENT}\`
-${CODE_INDENT}async function bar() {}
-${CODE_INDENT}async function foo() {}
-${PARENT_INDENT}\``,
+      output: `
+ruleTester.run({
+  valid: [
+    {
+      code:
+      \`
+        async function bar() {}
+        async function foo() {}
+      \`,
+    },
+  ],
+});
+      `,
     },
     // sanity check that it handles suggestion output
     {
@@ -809,7 +888,6 @@ ruleTester.run({
     },
 
     // sanity check that it runs on all tests
-    // TODO
     {
       code: `
 ruleTester.run({
@@ -968,14 +1046,25 @@ foo;
     },
 
     // handles prettier errors
-    // TODO
     {
-      code: wrap`'const x = ";'`,
+      code: `
+ruleTester.run({
+  valid: [
+    {
+      code: 'const x = ";',
+    },
+  ],
+});
+      `,
       errors: [
         {
+          column: 13,
           data: {
             message: 'Unterminated string literal.',
           },
+          endColumn: 27,
+          endLine: 5,
+          line: 5,
           messageId: 'prettierException',
         },
       ],
@@ -983,7 +1072,6 @@ foo;
     },
 
     // annotated variables are checked
-    // TODO
     {
       code: `
 const test: RunTests = {
@@ -1088,6 +1176,10 @@ const test: ValidTestCase<[]> = {
       `,
       errors: [
         {
+          column: 9,
+          endColumn: 48,
+          endLine: 5,
+          line: 5,
           messageId: 'invalidFormattingErrorTest',
         },
       ],
@@ -1168,13 +1260,37 @@ const a = 1;
   ],
 });
     `,
-    wrap`'const a = 1;'`,
-    wrap`\`
-${CODE_INDENT}const a = 1;
-${PARENT_INDENT}\``,
-    wrap`\`
+    `
+ruleTester.run({
+  valid: [
+    {
+      code: 'const a = 1;',
+    },
+  ],
+});
+    `,
+    `
+ruleTester.run({
+  valid: [
+    {
+      code: \`
+        const a = 1;
+      \`,
+    },
+  ],
+});
+    `,
+    `
+ruleTester.run({
+  valid: [
+    {
+      code: \`
 const a = 1;
-${PARENT_INDENT}\``,
+      \`,
+    },
+  ],
+});
+    `,
     // sanity check suggestion validation
     // eslint-disable-next-line @typescript-eslint/internal/plugin-test-formatting
     `
@@ -1243,20 +1359,32 @@ const a = 1;
 
     // test the only option
     {
-      code: wrap`'const x=1;'`,
-      options: [
-        {
-          formatWithPrettier: false,
-        },
-      ],
+      code: `
+ruleTester.run({
+  valid: [
+    {
+      code: 'const x=1;',
+    },
+  ],
+});
+      `,
+      options: [{ formatWithPrettier: false }],
     },
 
     // empty lines are valid when everything else is indented
-    wrap`\`
-${CODE_INDENT}const a = 1;
+    `
+ruleTester.run({
+  valid: [
+    {
+      code: \`
+        const a = 1;
 
-${CODE_INDENT}const b = 1;
-${PARENT_INDENT}\``,
+        const b = 1;
+      \`,
+    },
+  ],
+});
+    `,
 
     // random, unannotated variables aren't checked
     `
