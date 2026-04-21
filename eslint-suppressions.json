@@ -39,11 +39,6 @@
       "count": 2
     }
   },
-  "packages/eslint-plugin/tests/rules/no-this-alias.test.ts": {
-    "@typescript-eslint/internal/no-dynamic-tests": {
-      "count": 14
-    }
-  },
   "packages/eslint-plugin/tests/rules/no-unnecessary-condition.test.ts": {
     "@typescript-eslint/internal/no-dynamic-tests": {
       "count": 44
