@@ -29,9 +29,11 @@ import type {
   RuleTesterConfig,
   RunTests,
   SuggestionOutput,
+  TestCaseError,
   TesterConfigWithDefaults,
   ValidTestCase,
 } from './types';
+import type { AssertionOptions } from './types/AssertionOptions';
 
 import { TestFramework } from './TestFramework';
 import { ajvBuilder } from './utils/ajv';
@@ -579,6 +581,7 @@ export class RuleTester extends TestFramework {
                   // no need to pass no infer type parameter down to private methods
                   invalid,
                   seenInvalidTestCases,
+                  test.assertionOptions,
                 );
               } finally {
                 this.#runHook(invalid, 'after');
@@ -897,6 +900,7 @@ export class RuleTester extends TestFramework {
     rule: RuleModule<MessageIds, Options>,
     item: InvalidTestCase<MessageIds, Options>,
     seenInvalidTestCases: Set<string>,
+    assertionOptions: AssertionOptions = {},
   ): void {
     assert.ok(
       typeof item.code === 'string',
@@ -984,6 +988,8 @@ export class RuleTester extends TestFramework {
       );
 
       const hasMessageOfThisRule = messages.some(m => m.ruleId === ruleName);
+
+      const { requireLocation = false } = assertionOptions;
 
       // console.log({ messages });
       for (let i = 0, l = item.errors.length; i < l; i++) {
@@ -1114,6 +1120,22 @@ export class RuleTester extends TestFramework {
               message.endColumn,
               error.endColumn,
               `Error endColumn should be ${error.endColumn}`,
+            );
+          }
+
+          if (requireLocation) {
+            const locationProperties: (keyof Pick<
+              TestCaseError<MessageIds>,
+              'column' | 'endColumn' | 'endLine' | 'line'
+            >)[] = ['line', 'column', 'endLine', 'endColumn'];
+
+            const missingKeys = locationProperties.filter(
+              key =>
+                !hasOwnProperty(error, key) && hasOwnProperty(message, key),
+            );
+            assert.ok(
+              missingKeys.length === 0,
+              `Error is missing expected location properties: ${missingKeys.join(', ')}`,
             );
           }
 

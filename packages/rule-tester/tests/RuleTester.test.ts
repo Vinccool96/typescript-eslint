@@ -1083,6 +1083,257 @@ describe(RuleTester, () => {
   });
 });
 
+describe('RuleTester - AssertionOptions', () => {
+  beforeAll(() => {
+    vi.restoreAllMocks();
+  });
+
+  const positionRule: RuleModule<'noEnd' | 'withEnd'> = {
+    create(context) {
+      return {
+        'Identifier[name=noEnd]'(node): void {
+          context.report({
+            loc: { column: 0, line: 1 },
+            messageId: 'noEnd',
+            node,
+          });
+        },
+        'Identifier[name=withEnd]'(node): void {
+          context.report({
+            loc: {
+              end: { column: 1, line: 2 },
+              start: { column: 0, line: 1 },
+            },
+            messageId: 'withEnd',
+            node,
+          });
+        },
+      };
+    },
+    meta: {
+      messages: {
+        noEnd: 'noEnd',
+        withEnd: 'noEnd',
+      },
+      schema: [],
+      type: 'problem',
+    },
+  };
+
+  const ruleTester = new RuleTester();
+
+  describe('requireLocation', () => {
+    describe('unset', () => {
+      it('should allow shorthand', () => {
+        ruleTester.run('position-rule', positionRule, {
+          assertionOptions: {},
+          invalid: [
+            {
+              code: 'noEnd',
+              errors: [{ messageId: 'noEnd' }],
+            },
+          ],
+          valid: [],
+        });
+      });
+
+      it('should allow longhand', () => {
+        ruleTester.run('position-rule', positionRule, {
+          assertionOptions: {},
+          invalid: [
+            {
+              code: 'noEnd',
+              errors: [{ column: 1, line: 1, messageId: 'noEnd' }],
+            },
+            {
+              code: 'withEnd',
+              errors: [{ column: 1, line: 1, messageId: 'withEnd' }],
+            },
+            {
+              code: 'withEnd',
+              errors: [
+                {
+                  column: 1,
+                  endColumn: 2,
+                  endLine: 2,
+                  line: 1,
+                  messageId: 'withEnd',
+                },
+              ],
+            },
+          ],
+          valid: [],
+        });
+      });
+    });
+
+    describe('false', () => {
+      it('should allow shorthand', () => {
+        ruleTester.run('position-rule', positionRule, {
+          assertionOptions: { requireLocation: false },
+          invalid: [
+            {
+              code: 'noEnd',
+              errors: [{ messageId: 'noEnd' }],
+            },
+          ],
+          valid: [],
+        });
+      });
+
+      it('should allow longhand', () => {
+        ruleTester.run('position-rule', positionRule, {
+          assertionOptions: { requireLocation: false },
+          invalid: [
+            {
+              code: 'noEnd',
+              errors: [{ column: 1, line: 1, messageId: 'noEnd' }],
+            },
+            {
+              code: 'withEnd',
+              errors: [{ column: 1, line: 1, messageId: 'withEnd' }],
+            },
+            {
+              code: 'withEnd',
+              errors: [
+                {
+                  column: 1,
+                  endColumn: 2,
+                  endLine: 2,
+                  line: 1,
+                  messageId: 'withEnd',
+                },
+              ],
+            },
+          ],
+          valid: [],
+        });
+      });
+    });
+
+    describe('true', () => {
+      it('should fail if all location properties are missing - no end', () => {
+        expect(() =>
+          ruleTester.run('position-rule', positionRule, {
+            assertionOptions: { requireLocation: true },
+            invalid: [
+              {
+                code: 'noEnd',
+                errors: [{ messageId: 'noEnd' }],
+              },
+            ],
+            valid: [],
+          }),
+        ).toThrowError(
+          'Error is missing expected location properties: line, column',
+        );
+      });
+
+      it('should fail if all location properties are missing - with end', () => {
+        expect(() =>
+          ruleTester.run('position-rule', positionRule, {
+            assertionOptions: { requireLocation: true },
+            invalid: [
+              {
+                code: 'withEnd',
+                errors: [{ messageId: 'withEnd' }],
+              },
+            ],
+            valid: [],
+          }),
+        ).toThrowError(
+          'Error is missing expected location properties: line, column, endLine, endColumn',
+        );
+      });
+
+      it('should fail if line is missing', () => {
+        expect(() =>
+          ruleTester.run('position-rule', positionRule, {
+            assertionOptions: { requireLocation: true },
+            invalid: [
+              {
+                code: 'withEnd',
+                errors: [
+                  { column: 1, endColumn: 2, endLine: 2, messageId: 'withEnd' },
+                ],
+              },
+            ],
+            valid: [],
+          }),
+        ).toThrowError('Error is missing expected location properties: line');
+      });
+
+      it('should fail if column is missing', () => {
+        expect(() =>
+          ruleTester.run('position-rule', positionRule, {
+            assertionOptions: { requireLocation: true },
+            invalid: [
+              {
+                code: 'withEnd',
+                errors: [
+                  { endColumn: 2, endLine: 2, line: 1, messageId: 'withEnd' },
+                ],
+              },
+            ],
+            valid: [],
+          }),
+        ).toThrowError('Error is missing expected location properties: column');
+      });
+
+      it('should fail if endLine is missing', () => {
+        expect(() =>
+          ruleTester.run('position-rule', positionRule, {
+            assertionOptions: { requireLocation: true },
+            invalid: [
+              {
+                code: 'withEnd',
+                errors: [
+                  { column: 1, endColumn: 2, line: 1, messageId: 'withEnd' },
+                ],
+              },
+            ],
+            valid: [],
+          }),
+        ).toThrowError(
+          'Error is missing expected location properties: endLine',
+        );
+      });
+
+      it('should fail if endColumn is missing', () => {
+        expect(() =>
+          ruleTester.run('position-rule', positionRule, {
+            assertionOptions: { requireLocation: true },
+            invalid: [
+              {
+                code: 'withEnd',
+                errors: [
+                  { column: 1, endLine: 2, line: 1, messageId: 'withEnd' },
+                ],
+              },
+            ],
+            valid: [],
+          }),
+        ).toThrowError(
+          'Error is missing expected location properties: endColumn',
+        );
+      });
+
+      it('should pass for error without end location', () => {
+        ruleTester.run('position-rule', positionRule, {
+          assertionOptions: { requireLocation: true },
+          invalid: [
+            {
+              code: 'noEnd',
+              errors: [{ column: 1, line: 1, messageId: 'noEnd' }],
+            },
+          ],
+          valid: [],
+        });
+      });
+    });
+  });
+});
+
 describe('RuleTester - hooks', () => {
   beforeAll(() => {
     vi.restoreAllMocks();
