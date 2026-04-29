@@ -1088,14 +1088,69 @@ describe('RuleTester - AssertionOptions', () => {
     vi.restoreAllMocks();
   });
 
-  const positionRule: RuleModule<'noEnd' | 'withEnd'> = {
+  const assertionRule: RuleModule<
+    | 'bothData'
+    | 'errorData'
+    | 'noEnd'
+    | 'suggestionBothData'
+    | 'suggestionData'
+    | 'suggestionErrorData'
+    | 'suggestionSuggestionData'
+    | 'withEnd'
+  > = {
     create(context) {
       return {
+        'Identifier[name=bothData]'(node): void {
+          context.report({
+            data: { bar: 'John', foo: 'Jane' },
+            messageId: 'bothData',
+            node,
+            suggest: [
+              {
+                data: { bar: 'Jane', foo: 'John' },
+                fix(fixer) {
+                  return fixer.replaceText(node, 'fixed');
+                },
+                messageId: 'suggestionBothData',
+              },
+            ],
+          });
+        },
+        'Identifier[name=errorData]'(node): void {
+          context.report({
+            data: { bar: 'Jane', foo: 'John' },
+            messageId: 'errorData',
+            node,
+            suggest: [
+              {
+                fix(fixer) {
+                  return fixer.replaceText(node, 'fixed');
+                },
+                messageId: 'suggestionErrorData',
+              },
+            ],
+          });
+        },
         'Identifier[name=noEnd]'(node): void {
           context.report({
             loc: { column: 0, line: 1 },
             messageId: 'noEnd',
             node,
+          });
+        },
+        'Identifier[name=suggestionData]'(node): void {
+          context.report({
+            messageId: 'suggestionData',
+            node,
+            suggest: [
+              {
+                data: { bar: 'John', foo: 'Jane' },
+                fix(fixer) {
+                  return fixer.replaceText(node, 'fixed');
+                },
+                messageId: 'suggestionSuggestionData',
+              },
+            ],
           });
         },
         'Identifier[name=withEnd]'(node): void {
@@ -1111,8 +1166,15 @@ describe('RuleTester - AssertionOptions', () => {
       };
     },
     meta: {
+      hasSuggestions: true,
       messages: {
+        bothData: '{{foo}} and {{bar}} are nincompoops',
+        errorData: '{{foo}} and {{bar}} are hopeless',
         noEnd: 'noEnd',
+        suggestionBothData: '{{foo}} and {{bar}} should not be nincompoops',
+        suggestionData: 'love is in the air',
+        suggestionErrorData: 'game over man',
+        suggestionSuggestionData: '{{foo}} should confess to {{bar}}',
         withEnd: 'noEnd',
       },
       schema: [],
@@ -1125,7 +1187,7 @@ describe('RuleTester - AssertionOptions', () => {
   describe('requireLocation', () => {
     describe('unset', () => {
       it('should allow shorthand', () => {
-        ruleTester.run('position-rule', positionRule, {
+        ruleTester.run('position-rule', assertionRule, {
           assertionOptions: {},
           invalid: [
             {
@@ -1138,7 +1200,7 @@ describe('RuleTester - AssertionOptions', () => {
       });
 
       it('should allow longhand', () => {
-        ruleTester.run('position-rule', positionRule, {
+        ruleTester.run('position-rule', assertionRule, {
           assertionOptions: {},
           invalid: [
             {
@@ -1169,7 +1231,7 @@ describe('RuleTester - AssertionOptions', () => {
 
     describe('false', () => {
       it('should allow shorthand', () => {
-        ruleTester.run('position-rule', positionRule, {
+        ruleTester.run('position-rule', assertionRule, {
           assertionOptions: { requireLocation: false },
           invalid: [
             {
@@ -1182,7 +1244,7 @@ describe('RuleTester - AssertionOptions', () => {
       });
 
       it('should allow longhand', () => {
-        ruleTester.run('position-rule', positionRule, {
+        ruleTester.run('position-rule', assertionRule, {
           assertionOptions: { requireLocation: false },
           invalid: [
             {
@@ -1214,7 +1276,7 @@ describe('RuleTester - AssertionOptions', () => {
     describe('true', () => {
       it('should fail if all location properties are missing - no end', () => {
         expect(() =>
-          ruleTester.run('position-rule', positionRule, {
+          ruleTester.run('position-rule', assertionRule, {
             assertionOptions: { requireLocation: true },
             invalid: [
               {
@@ -1231,7 +1293,7 @@ describe('RuleTester - AssertionOptions', () => {
 
       it('should fail if all location properties are missing - with end', () => {
         expect(() =>
-          ruleTester.run('position-rule', positionRule, {
+          ruleTester.run('position-rule', assertionRule, {
             assertionOptions: { requireLocation: true },
             invalid: [
               {
@@ -1248,7 +1310,7 @@ describe('RuleTester - AssertionOptions', () => {
 
       it('should fail if line is missing', () => {
         expect(() =>
-          ruleTester.run('position-rule', positionRule, {
+          ruleTester.run('position-rule', assertionRule, {
             assertionOptions: { requireLocation: true },
             invalid: [
               {
@@ -1265,7 +1327,7 @@ describe('RuleTester - AssertionOptions', () => {
 
       it('should fail if column is missing', () => {
         expect(() =>
-          ruleTester.run('position-rule', positionRule, {
+          ruleTester.run('position-rule', assertionRule, {
             assertionOptions: { requireLocation: true },
             invalid: [
               {
@@ -1282,7 +1344,7 @@ describe('RuleTester - AssertionOptions', () => {
 
       it('should fail if endLine is missing', () => {
         expect(() =>
-          ruleTester.run('position-rule', positionRule, {
+          ruleTester.run('position-rule', assertionRule, {
             assertionOptions: { requireLocation: true },
             invalid: [
               {
@@ -1301,7 +1363,7 @@ describe('RuleTester - AssertionOptions', () => {
 
       it('should fail if endColumn is missing', () => {
         expect(() =>
-          ruleTester.run('position-rule', positionRule, {
+          ruleTester.run('position-rule', assertionRule, {
             assertionOptions: { requireLocation: true },
             invalid: [
               {
@@ -1319,7 +1381,7 @@ describe('RuleTester - AssertionOptions', () => {
       });
 
       it('should pass for error without end location', () => {
-        ruleTester.run('position-rule', positionRule, {
+        ruleTester.run('position-rule', assertionRule, {
           assertionOptions: { requireLocation: true },
           invalid: [
             {
@@ -1329,6 +1391,687 @@ describe('RuleTester - AssertionOptions', () => {
           ],
           valid: [],
         });
+      });
+    });
+  });
+
+  describe('requireData', () => {
+    describe('unset', () => {
+      it('should allow not setting data for errors', () => {
+        ruleTester.run('data-rule', assertionRule, {
+          assertionOptions: {},
+          invalid: [
+            {
+              code: 'bothData',
+              errors: [
+                {
+                  messageId: 'bothData',
+                  suggestions: [
+                    { messageId: 'suggestionBothData', output: 'fixed' },
+                  ],
+                },
+              ],
+            },
+            {
+              code: 'errorData',
+              errors: [
+                {
+                  messageId: 'errorData',
+                  suggestions: [
+                    { messageId: 'suggestionErrorData', output: 'fixed' },
+                  ],
+                },
+              ],
+            },
+          ],
+          valid: [],
+        });
+      });
+
+      it('should allow not setting data for suggestions', () => {
+        ruleTester.run('data-rule', assertionRule, {
+          assertionOptions: {},
+          invalid: [
+            {
+              code: 'bothData',
+              errors: [
+                {
+                  messageId: 'bothData',
+                  suggestions: [
+                    { messageId: 'suggestionBothData', output: 'fixed' },
+                  ],
+                },
+              ],
+            },
+            {
+              code: 'suggestionData',
+              errors: [
+                {
+                  messageId: 'suggestionData',
+                  suggestions: [
+                    { messageId: 'suggestionSuggestionData', output: 'fixed' },
+                  ],
+                },
+              ],
+            },
+          ],
+          valid: [],
+        });
+      });
+    });
+
+    describe('false', () => {
+      it('should allow not setting data for errors', () => {
+        ruleTester.run('data-rule', assertionRule, {
+          assertionOptions: { requireData: false },
+          invalid: [
+            {
+              code: 'bothData',
+              errors: [
+                {
+                  messageId: 'bothData',
+                  suggestions: [
+                    { messageId: 'suggestionBothData', output: 'fixed' },
+                  ],
+                },
+              ],
+            },
+            {
+              code: 'errorData',
+              errors: [
+                {
+                  messageId: 'errorData',
+                  suggestions: [
+                    { messageId: 'suggestionErrorData', output: 'fixed' },
+                  ],
+                },
+              ],
+            },
+          ],
+          valid: [],
+        });
+      });
+
+      it('should allow not setting data for suggestions', () => {
+        ruleTester.run('data-rule', assertionRule, {
+          assertionOptions: { requireData: false },
+          invalid: [
+            {
+              code: 'bothData',
+              errors: [
+                {
+                  messageId: 'bothData',
+                  suggestions: [
+                    { messageId: 'suggestionBothData', output: 'fixed' },
+                  ],
+                },
+              ],
+            },
+            {
+              code: 'suggestionData',
+              errors: [
+                {
+                  messageId: 'suggestionData',
+                  suggestions: [
+                    { messageId: 'suggestionSuggestionData', output: 'fixed' },
+                  ],
+                },
+              ],
+            },
+          ],
+          valid: [],
+        });
+      });
+    });
+
+    describe('true', () => {
+      it('should allow not specifying data for error messages without placeholders', () => {
+        ruleTester.run('data-rule', assertionRule, {
+          assertionOptions: { requireData: true },
+          invalid: [
+            {
+              code: 'withEnd',
+              errors: [{ messageId: 'withEnd' }],
+            },
+          ],
+          valid: [],
+        });
+      });
+
+      it('should allow specifying error data when there are placeholders', () => {
+        ruleTester.run('data-rule', assertionRule, {
+          assertionOptions: { requireData: true },
+          invalid: [
+            {
+              code: 'bothData',
+              errors: [
+                {
+                  data: { bar: 'John', foo: 'Jane' },
+                  messageId: 'bothData',
+                  suggestions: [
+                    {
+                      data: { bar: 'Jane', foo: 'John' },
+                      messageId: 'suggestionBothData',
+                      output: 'fixed',
+                    },
+                  ],
+                },
+              ],
+            },
+            {
+              code: 'errorData',
+              errors: [
+                {
+                  data: { bar: 'Jane', foo: 'John' },
+                  messageId: 'errorData',
+                  suggestions: [
+                    { messageId: 'suggestionErrorData', output: 'fixed' },
+                  ],
+                },
+              ],
+            },
+          ],
+          valid: [],
+        });
+      });
+
+      it('should allow specifying suggestion data when there are placeholders', () => {
+        ruleTester.run('data-rule', assertionRule, {
+          assertionOptions: { requireData: true },
+          invalid: [
+            {
+              code: 'bothData',
+              errors: [
+                {
+                  data: { bar: 'John', foo: 'Jane' },
+                  messageId: 'bothData',
+                  suggestions: [
+                    {
+                      data: { bar: 'Jane', foo: 'John' },
+                      messageId: 'suggestionBothData',
+                      output: 'fixed',
+                    },
+                  ],
+                },
+              ],
+            },
+            {
+              code: 'suggestionData',
+              errors: [
+                {
+                  messageId: 'suggestionData',
+                  suggestions: [
+                    {
+                      data: { bar: 'John', foo: 'Jane' },
+                      messageId: 'suggestionSuggestionData',
+                      output: 'fixed',
+                    },
+                  ],
+                },
+              ],
+            },
+          ],
+          valid: [],
+        });
+      });
+
+      it('should disallow not specifying error data when there are placeholders', () => {
+        expect(() =>
+          ruleTester.run('data-rule', assertionRule, {
+            assertionOptions: { requireData: true },
+            invalid: [
+              {
+                code: 'bothData',
+                errors: [
+                  {
+                    messageId: 'bothData',
+                    suggestions: [
+                      {
+                        data: { bar: 'Jane', foo: 'John' },
+                        messageId: 'suggestionBothData',
+                        output: 'fixed',
+                      },
+                    ],
+                  },
+                ],
+              },
+            ],
+            valid: [],
+          }),
+        ).toThrowError(
+          "Error should specify the 'data' property as the referenced message has placeholders.",
+        );
+        expect(() =>
+          ruleTester.run('data-rule', assertionRule, {
+            assertionOptions: { requireData: true },
+            invalid: [
+              {
+                code: 'errorData',
+                errors: [
+                  {
+                    messageId: 'errorData',
+                    suggestions: [
+                      { messageId: 'suggestionErrorData', output: 'fixed' },
+                    ],
+                  },
+                ],
+              },
+            ],
+            valid: [],
+          }),
+        ).toThrowError(
+          "Error should specify the 'data' property as the referenced message has placeholders.",
+        );
+      });
+
+      it('should disallow not specifying suggestion data when there are placeholders', () => {
+        expect(() =>
+          ruleTester.run('data-rule', assertionRule, {
+            assertionOptions: { requireData: true },
+            invalid: [
+              {
+                code: 'bothData',
+                errors: [
+                  {
+                    data: { bar: 'John', foo: 'Jane' },
+                    messageId: 'bothData',
+                    suggestions: [
+                      {
+                        messageId: 'suggestionBothData',
+                        output: 'fixed',
+                      },
+                    ],
+                  },
+                ],
+              },
+            ],
+            valid: [],
+          }),
+        ).toThrowError(
+          "Error Suggestion at index 0: Suggestion should specify the 'data' property as the referenced message has placeholders.",
+        );
+        expect(() =>
+          ruleTester.run('data-rule', assertionRule, {
+            assertionOptions: { requireData: true },
+            invalid: [
+              {
+                code: 'suggestionData',
+                errors: [
+                  {
+                    messageId: 'suggestionData',
+                    suggestions: [
+                      {
+                        messageId: 'suggestionSuggestionData',
+                        output: 'fixed',
+                      },
+                    ],
+                  },
+                ],
+              },
+            ],
+            valid: [],
+          }),
+        ).toThrowError(
+          "Error Suggestion at index 0: Suggestion should specify the 'data' property as the referenced message has placeholders.",
+        );
+      });
+    });
+
+    describe('error', () => {
+      it('should allow not specifying data for error messages without placeholders', () => {
+        ruleTester.run('data-rule', assertionRule, {
+          assertionOptions: { requireData: 'error' },
+          invalid: [
+            {
+              code: 'withEnd',
+              errors: [{ messageId: 'withEnd' }],
+            },
+          ],
+          valid: [],
+        });
+      });
+
+      it('should allow specifying error data when there are placeholders', () => {
+        ruleTester.run('data-rule', assertionRule, {
+          assertionOptions: { requireData: 'error' },
+          invalid: [
+            {
+              code: 'bothData',
+              errors: [
+                {
+                  data: { bar: 'John', foo: 'Jane' },
+                  messageId: 'bothData',
+                  suggestions: [
+                    {
+                      data: { bar: 'Jane', foo: 'John' },
+                      messageId: 'suggestionBothData',
+                      output: 'fixed',
+                    },
+                  ],
+                },
+              ],
+            },
+            {
+              code: 'errorData',
+              errors: [
+                {
+                  data: { bar: 'Jane', foo: 'John' },
+                  messageId: 'errorData',
+                  suggestions: [
+                    { messageId: 'suggestionErrorData', output: 'fixed' },
+                  ],
+                },
+              ],
+            },
+          ],
+          valid: [],
+        });
+      });
+
+      it('should allow specifying suggestion data when there are placeholders', () => {
+        ruleTester.run('data-rule', assertionRule, {
+          assertionOptions: { requireData: 'error' },
+          invalid: [
+            {
+              code: 'bothData',
+              errors: [
+                {
+                  data: { bar: 'John', foo: 'Jane' },
+                  messageId: 'bothData',
+                  suggestions: [
+                    {
+                      data: { bar: 'Jane', foo: 'John' },
+                      messageId: 'suggestionBothData',
+                      output: 'fixed',
+                    },
+                  ],
+                },
+              ],
+            },
+            {
+              code: 'suggestionData',
+              errors: [
+                {
+                  messageId: 'suggestionData',
+                  suggestions: [
+                    {
+                      data: { bar: 'John', foo: 'Jane' },
+                      messageId: 'suggestionSuggestionData',
+                      output: 'fixed',
+                    },
+                  ],
+                },
+              ],
+            },
+          ],
+          valid: [],
+        });
+      });
+
+      it('should disallow not specifying error data when there are placeholders', () => {
+        expect(() =>
+          ruleTester.run('data-rule', assertionRule, {
+            assertionOptions: { requireData: 'error' },
+            invalid: [
+              {
+                code: 'bothData',
+                errors: [
+                  {
+                    messageId: 'bothData',
+                    suggestions: [
+                      {
+                        data: { bar: 'Jane', foo: 'John' },
+                        messageId: 'suggestionBothData',
+                        output: 'fixed',
+                      },
+                    ],
+                  },
+                ],
+              },
+            ],
+            valid: [],
+          }),
+        ).toThrowError(
+          "Error should specify the 'data' property as the referenced message has placeholders.",
+        );
+        expect(() =>
+          ruleTester.run('data-rule', assertionRule, {
+            assertionOptions: { requireData: true },
+            invalid: [
+              {
+                code: 'errorData',
+                errors: [
+                  {
+                    messageId: 'errorData',
+                    suggestions: [
+                      { messageId: 'suggestionErrorData', output: 'fixed' },
+                    ],
+                  },
+                ],
+              },
+            ],
+            valid: [],
+          }),
+        ).toThrowError(
+          "Error should specify the 'data' property as the referenced message has placeholders.",
+        );
+      });
+
+      it('should allow not specifying suggestion data when there are placeholders', () => {
+        ruleTester.run('data-rule', assertionRule, {
+          assertionOptions: { requireData: 'error' },
+          invalid: [
+            {
+              code: 'bothData',
+              errors: [
+                {
+                  data: { bar: 'John', foo: 'Jane' },
+                  messageId: 'bothData',
+                  suggestions: [
+                    {
+                      messageId: 'suggestionBothData',
+                      output: 'fixed',
+                    },
+                  ],
+                },
+              ],
+            },
+            {
+              code: 'suggestionData',
+              errors: [
+                {
+                  messageId: 'suggestionData',
+                  suggestions: [
+                    {
+                      messageId: 'suggestionSuggestionData',
+                      output: 'fixed',
+                    },
+                  ],
+                },
+              ],
+            },
+          ],
+          valid: [],
+        });
+      });
+    });
+
+    describe('suggestion', () => {
+      it('should allow not specifying data for error messages without placeholders', () => {
+        ruleTester.run('data-rule', assertionRule, {
+          assertionOptions: { requireData: 'suggestion' },
+          invalid: [
+            {
+              code: 'withEnd',
+              errors: [{ messageId: 'withEnd' }],
+            },
+          ],
+          valid: [],
+        });
+      });
+
+      it('should allow specifying error data when there are placeholders', () => {
+        ruleTester.run('data-rule', assertionRule, {
+          assertionOptions: { requireData: 'suggestion' },
+          invalid: [
+            {
+              code: 'bothData',
+              errors: [
+                {
+                  data: { bar: 'John', foo: 'Jane' },
+                  messageId: 'bothData',
+                  suggestions: [
+                    {
+                      data: { bar: 'Jane', foo: 'John' },
+                      messageId: 'suggestionBothData',
+                      output: 'fixed',
+                    },
+                  ],
+                },
+              ],
+            },
+            {
+              code: 'errorData',
+              errors: [
+                {
+                  data: { bar: 'Jane', foo: 'John' },
+                  messageId: 'errorData',
+                  suggestions: [
+                    { messageId: 'suggestionErrorData', output: 'fixed' },
+                  ],
+                },
+              ],
+            },
+          ],
+          valid: [],
+        });
+      });
+
+      it('should allow specifying suggestion data when there are placeholders', () => {
+        ruleTester.run('data-rule', assertionRule, {
+          assertionOptions: { requireData: 'suggestion' },
+          invalid: [
+            {
+              code: 'bothData',
+              errors: [
+                {
+                  data: { bar: 'John', foo: 'Jane' },
+                  messageId: 'bothData',
+                  suggestions: [
+                    {
+                      data: { bar: 'Jane', foo: 'John' },
+                      messageId: 'suggestionBothData',
+                      output: 'fixed',
+                    },
+                  ],
+                },
+              ],
+            },
+            {
+              code: 'suggestionData',
+              errors: [
+                {
+                  messageId: 'suggestionData',
+                  suggestions: [
+                    {
+                      data: { bar: 'John', foo: 'Jane' },
+                      messageId: 'suggestionSuggestionData',
+                      output: 'fixed',
+                    },
+                  ],
+                },
+              ],
+            },
+          ],
+          valid: [],
+        });
+      });
+
+      it('should allow not specifying error data when there are placeholders', () => {
+        ruleTester.run('data-rule', assertionRule, {
+          assertionOptions: { requireData: 'suggestion' },
+          invalid: [
+            {
+              code: 'bothData',
+              errors: [
+                {
+                  messageId: 'bothData',
+                  suggestions: [
+                    {
+                      data: { bar: 'Jane', foo: 'John' },
+                      messageId: 'suggestionBothData',
+                      output: 'fixed',
+                    },
+                  ],
+                },
+              ],
+            },
+            {
+              code: 'errorData',
+              errors: [
+                {
+                  messageId: 'errorData',
+                  suggestions: [
+                    { messageId: 'suggestionErrorData', output: 'fixed' },
+                  ],
+                },
+              ],
+            },
+          ],
+          valid: [],
+        });
+      });
+
+      it('should disallow not specifying suggestion data when there are placeholders', () => {
+        expect(() =>
+          ruleTester.run('data-rule', assertionRule, {
+            assertionOptions: { requireData: 'suggestion' },
+            invalid: [
+              {
+                code: 'bothData',
+                errors: [
+                  {
+                    data: { bar: 'John', foo: 'Jane' },
+                    messageId: 'bothData',
+                    suggestions: [
+                      {
+                        messageId: 'suggestionBothData',
+                        output: 'fixed',
+                      },
+                    ],
+                  },
+                ],
+              },
+            ],
+            valid: [],
+          }),
+        ).toThrowError(
+          "Error Suggestion at index 0: Suggestion should specify the 'data' property as the referenced message has placeholders.",
+        );
+        expect(() =>
+          ruleTester.run('data-rule', assertionRule, {
+            assertionOptions: { requireData: 'suggestion' },
+            invalid: [
+              {
+                code: 'suggestionData',
+                errors: [
+                  {
+                    messageId: 'suggestionData',
+                    suggestions: [
+                      {
+                        messageId: 'suggestionSuggestionData',
+                        output: 'fixed',
+                      },
+                    ],
+                  },
+                ],
+              },
+            ],
+            valid: [],
+          }),
+        ).toThrowError(
+          "Error Suggestion at index 0: Suggestion should specify the 'data' property as the referenced message has placeholders.",
+        );
       });
     });
   });

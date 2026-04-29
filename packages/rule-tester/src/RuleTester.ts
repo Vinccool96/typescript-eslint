@@ -989,7 +989,7 @@ export class RuleTester extends TestFramework {
 
       const hasMessageOfThisRule = messages.some(m => m.ruleId === ruleName);
 
-      const { requireLocation = false } = assertionOptions;
+      const { requireData = false, requireLocation = false } = assertionOptions;
 
       // console.log({ messages });
       for (let i = 0, l = item.errors.length; i < l; i++) {
@@ -1083,6 +1083,16 @@ export class RuleTester extends TestFramework {
                 message.message,
                 rehydratedMessage,
                 `Hydrated message "${rehydratedMessage}" does not match "${message.message}"`,
+              );
+            } else {
+              const requiresDataProperty =
+                requireData === true || requireData === 'error';
+              const hasPlaceholders =
+                getMessagePlaceholders(rule.meta.messages[error.messageId])
+                  .length > 0;
+              assert.ok(
+                !requiresDataProperty || !hasPlaceholders,
+                `Error should specify the 'data' property as the referenced message has placeholders.`,
               );
             }
           } else {
@@ -1232,10 +1242,13 @@ export class RuleTester extends TestFramework {
                         `${suggestionPrefix} messageId should be '${expectedSuggestion.messageId}' but got '${actualSuggestion.messageId}' instead.`,
                       );
 
+                      const rawSuggestionMessage =
+                        rule.meta.messages[expectedSuggestion.messageId];
+
                       const unsubstitutedPlaceholders =
                         getUnsubstitutedMessagePlaceholders(
                           actualSuggestion.desc,
-                          rule.meta.messages[expectedSuggestion.messageId],
+                          rawSuggestionMessage,
                           expectedSuggestion.data,
                         );
 
@@ -1256,6 +1269,16 @@ export class RuleTester extends TestFramework {
                           actualSuggestion.desc,
                           rehydratedDesc,
                           `${suggestionPrefix} Hydrated test desc "${rehydratedDesc}" does not match received desc "${actualSuggestion.desc}".`,
+                        );
+                      } else {
+                        const requiresDataProperty =
+                          requireData === true || requireData === 'suggestion';
+                        const hasPlaceholders =
+                          getMessagePlaceholders(rawSuggestionMessage).length >
+                          0;
+                        assert.ok(
+                          !requiresDataProperty || !hasPlaceholders,
+                          `${suggestionPrefix} Suggestion should specify the 'data' property as the referenced message has placeholders.`,
                         );
                       }
                     } else if (hasOwnProperty(expectedSuggestion, 'data')) {
